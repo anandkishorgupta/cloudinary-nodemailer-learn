@@ -31,9 +31,12 @@ function isFileTypeSupported(type, supportedType) {
     return supportedType.includes(type)
 }
 // upload file to cloudinary
-async function uploadFileToCloudinary(file, folder) {
+async function uploadFileToCloudinary(file, folder, quality) {
     const options = { folder: folder }
-    options.resource_type="auto"
+    if (quality) {
+        options.quality = quality
+    }
+    options.resource_type = "auto"
     return await cloudinary.uploader.upload(file.tempFilePath, options)
 }
 // image upload to cloudinary
@@ -83,7 +86,7 @@ export const videoUpload = async (req, res) => {
         const { name, tags, email } = req.body
         console.log(name, tags, email)
         const file = req.files.videoFile
-        console.log("file",file)
+        console.log("file", file)
         // validation
         const supportedType = ["mp4", "mov"]
         const fileType = file.name.split(".")[1].toLowerCase()
@@ -93,7 +96,7 @@ export const videoUpload = async (req, res) => {
                 message: "file format not supported"
             })
         }
-// upload to cloudinary
+        // upload to cloudinary
         const response = await uploadFileToCloudinary(file, "coding")
         console.log(response)
         // save to db
@@ -103,14 +106,57 @@ export const videoUpload = async (req, res) => {
         })
         await fileData.save()
         res.status(200).json({
-            name, tags, email,  videoUrl: response.secure_url
+            name, tags, email, videoUrl: response.secure_url
         })
 
     } catch (error) {
-        console.error(error); 
+        console.error(error);
         res.status(400).json({
             success: "false",
             message: "something went wrong"
         })
     }
 }
+
+
+// IMAGE SIZE REDUCER
+export const imageSizeReducer = async (req, res) => {
+    try {
+        const { name, tags, email } = req.body
+        console.log(name, tags, email)
+        const file = req.files.imageFile
+
+        const fileType = file.name.split(".")[1].toLowerCase();
+        // validation
+        const supportedType = ["jpg", "jpeg", "png"]
+        if (!isFileTypeSupported(fileType, supportedType)) {
+            return res.status(400).json({
+                success: false,
+                message: "file type not supported"
+            })
+
+        }
+        const response = await uploadFileToCloudinary(file, "coding", 30)
+        const fileData = new File({
+            name, email, tags, imageUrl: response.secure_url
+        })
+        fileData.save()
+        res.status(200).json({
+            success: true,
+            message: "uploaded to database successfully",
+            imageUrl: response.secure_url
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.json({
+            success: false,
+            message: "error occurred "
+        })
+    }
+}
+
+
+// handle image compress by height -- remaining
+
+//limit the size of file upload -- remaining 
