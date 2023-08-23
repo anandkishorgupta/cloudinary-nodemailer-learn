@@ -5,7 +5,10 @@ import { cloudinaryConnect } from "./config/cloudinary.js";
 import { connectDB } from "./config/database.js";
 import fileUploadRoute from "./routes/fileUploadRoute.js";
 const app = express();
-app.use(fileUpload())
+app.use(fileUpload({
+    useTempFiles : true,
+    tempFileDir : '/tmp/'
+}))
 app.use(express.json())
 dotenv.config()
 const PORT = process.env.PORT || 3000

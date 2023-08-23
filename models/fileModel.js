@@ -12,6 +12,9 @@ const fileSchema = new mongoose.Schema({
     },
     email: {
         type: String
+    },
+    videoUrl:{
+        type:String
     }
 })
 const File = mongoose.model("File", fileSchema)
